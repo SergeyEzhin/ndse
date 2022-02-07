@@ -10,29 +10,22 @@ const pathFile = path.join(__dirname, 'results.json');
 console.log(number);
 
 let data = {
-    'Количество партий': 0,
-    'Количество выигранных партий': 0,
-    'Количество проигранных партий': 0,
-    'Процентное соотношение выиграных партий': 0
+    count: 0,
+    countWonGames: 0,
+    countLostGames: 0,
+    percent: 0
 };
 
-function processingFile() {
+function processingFile(result) {
     fs.stat(pathFile, (err, stat) => {
         if(err == null) {
-            console.log('File exists');
-
+            // console.log('File exists');
             let contentFile = JSON.parse(readContentFile());
-            contentFile['Количество партий'] += 1;
-
-            fs.writeFile(pathFile, JSON.stringify(contentFile), err => {
-                console.log(err);
-            });
+            contentFile = updateContentFile(contentFile, result);
+            writeContentFile(contentFile);
         } else if(err.code === 'ENOENT') {
-            data['Количество партий'] += 1;
-
-            fs.writeFile(pathFile, JSON.stringify(data), err => {
-                console.log(err);
-            });
+            let contentFile = updateContentFile(data, result);
+            writeContentFile(contentFile);
         } else {
             console.log('Some other error: ', err.code);
         }
@@ -47,25 +40,67 @@ function guessNumber(query) {
     });
 }
 
-function readContentFile() {
-    let contentFile = fs.readFileSync(pathFile, 'utf8');
-    return contentFile;
-}
+function updateContentFile(data, result) {
+    if(data) {
+        data.count += 1;
 
-async function checkNumber(result) {
-    if(+result === number) {
-        console.log('Вы угадали число', result);
-    } else {
-        console.log('Вы не угадали число');
+        if(result) {
+            data.countWonGames += 1;
+        } else {
+            data.countLostGames += 1;
+        }
+        
+        if(data.countWonGames !== 0) {
+            data.percent = `${Math.round(data.countWonGames / data.count  * 100)}%`;
+        } else {
+            data.percent = '0%';
+        }
+
+        console.log('Количество игр:', data.count);
+        console.log('Количество побед:', data.countWonGames);
+        console.log('Количество поражений:', data.countLostGames);
+        console.log('Процент выигранных игр:', data.percent);
+
+        return data;
     }
 }
 
-async function main() {
-    let result = await guessNumber('Загадано число 1 или 2 \n');
-    await checkNumber(result);
-    processingFile();
+function writeContentFile(data) {
+    // console.log('Write');
+    const writerStream = fs.createWriteStream(pathFile);
 
+    writerStream.write(JSON.stringify(data));
+    writerStream.on('error', err => {
+        console.log('Error:', err);
+    });
+    writerStream.end();
+}
+
+function readContentFile() {
+    // console.log('Read');
+    let contentFile = fs.readFileSync(pathFile, {encoding: 'utf-8'});
+    return contentFile;
+}
+
+function checkNumber(num) {
+    let result;
+
+    if(+num === number) {
+        console.log('Вы угадали число', num);
+        result = true;
+    } else {
+        console.log('Вы не угадали число');
+        result = false;
+    }
+
+    return result;
+}
+
+async function main() {
+    let answer = await guessNumber('Загадано число 1 или 2 \n');
+    let result = checkNumber(answer);
     rl.close();
+    processingFile(result);
 }
 
 main();
