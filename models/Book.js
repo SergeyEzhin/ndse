@@ -1,6 +1,6 @@
-class Todo {
+class Book {
     constructor(id = "", title = "", description = "", 
-    authors = "", favorite = "", fileCover = "", fileName = "") {
+    authors = "", favorite = "", fileCover = "", fileName = "", fileBook = "") {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -8,7 +8,8 @@ class Todo {
         this.favorite = favorite;
         this.fileCover = fileCover;
         this.fileName = fileName;
+        this.fileBook = fileBook;
     }
 }
 
-module.exports = Todo;
+module.exports = Book;
