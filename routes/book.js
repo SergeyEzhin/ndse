@@ -3,6 +3,7 @@ const router = express.Router();
 const uidGenerator = require('node-unique-id-generator');
 const { Book } = require('../models');
 const fileMiddleware = require('../middleware/file');
+const urlencodedParser = express.urlencoded({extended: false});
 
 const store = {
     books: []
@@ -15,7 +16,38 @@ const store = {
 
 router.get('/', (req, res) => {
     const { books } = store;
-    res.json(books);
+
+    res.render("book/index", {
+        title: "Books",
+        books
+    });
+});
+
+router.get('/create', (req, res) => {
+    res.render("book/create", {
+        title: 'Book create',
+        book: {}
+    });
+});
+
+router.post('/create', fileMiddleware.single('file-book'), (req, res) => {
+    const { books } = store;
+    const { title, desc } = req.body;
+    let newBook = new Book(uidGenerator.generateUniqueId(), title, desc);
+
+    if (req.file) {
+        const { path, originalname } = req.file;
+
+        newBook = {
+            ...newBook,
+            fileBook: path,
+            fileName: originalname
+        };
+    }
+
+    books.push(newBook);
+
+    res.redirect('/books');
 });
 
 router.get('/:id', (req, res) => {
@@ -23,26 +55,32 @@ router.get('/:id', (req, res) => {
     const { id } = req.params;
     const idx = books.findIndex(book => book.id === id);
 
-    if(idx !== -1) {
-        res.json(books[idx]);
+    if (idx !== -1) {
+        res.render("book/view", {
+            title: 'Book view',
+            book: books[idx]
+        })
     } else {
-        res.status(404);
-        res.json("Book not found");
+        res.status(404).redirect('/404');
     }
 });
 
-router.post('/', (req, res) => {
+router.get('/update/:id', (req, res) => {
     const { books } = store;
-    const { title, description } = req.body;
-    const newBook = new Book(uidGenerator.generateUniqueId(), title, description);
+    const { id } = req.params;
+    const idx = books.findIndex(book => book.id === id);
 
-    books.push(newBook);
-
-    res.status(201);
-    res.json(newBook);
+    if(idx !== -1) {
+        res.render("book/update", {
+            title: 'Book update',
+            book: books[idx]
+        });
+    } else {
+        res.status(404).redirect('/404');
+    }
 });
 
-router.put('/:id', (req, res) => {
+router.post('/update/:id', fileMiddleware.single('file-book'), (req, res) => {
     const { books } = store;
     const { id } = req.params;
     const { title, description } = req.body;
@@ -52,66 +90,29 @@ router.put('/:id', (req, res) => {
         books[idx] = {
             ...books[idx],
             title,
-            description,
-        };
-        res.json(books[idx]);
+            description
+        }
+        res.redirect(`/books/${id}`);
     } else {
-        res.status(404);
-        res.json("Book not found");
+        res.status(404).redirect('/404');
     }
+
 });
 
-router.delete('/:id', (req, res) => {
+router.post('/delete/:id', (req, res) => {
     const { books } = store;
     const { id } = req.params;
     const idx = books.findIndex(book => book.id === id);
 
-    if (idx !== -1) {
+    if(idx !== -1) {
         books.splice(idx, 1);
-        res.json(true);
+        res.redirect(`/books`);
     } else {
-        res.status(404);
-        res.json("Book not found");
+        res.status(404).redirect('/404');
     }
 });
 
-router.post('/:id/upload',  
-    (req, res, next) => {
-        const { books } = store;
-        const { id } = req.params;
-        const idx = books.findIndex(book => book.id === id);
-
-        if(idx !== -1) {
-            next();
-        } else {
-            res.status(404);
-            res.json('Incorrect ID book');
-        }
-    }, 
-    fileMiddleware.single('file-book'), 
-    (req, res) => {
-        const { books } = store;
-        const { id } = req.params;
-        const idx = books.findIndex(book => book.id === id);
-    
-        if (req.file) {
-            const { path, originalname } = req.file;
-
-            books[idx] = {
-                ...books[idx],
-                fileBook: path,
-                fileName: originalname
-            };
-
-            console.log(path);
-            res.json(path);
-        } else {
-            res.json('No file');
-        }
-    }
-);
-
-router.get('/:id/download', (req, res) => {
+router.get('/download/:id', (req, res) => {
     const { books } = store;
     const { id } = req.params;
     const idx = books.findIndex(book => book.id === id);
@@ -119,12 +120,13 @@ router.get('/:id/download', (req, res) => {
     if(idx !== -1) {
         res.download(__dirname + '/../' + books[idx].fileBook, `${books[idx].fileName}`, err => {
             if (err) {
-                res.status(404).json(null);
+                res.status(404).redirect('/404');
             }
         });
     } else {
-        res.status(404).json('Incorrect ID book');
+        res.status(404).redirect('/404');
     }
 });
 
 module.exports = router;
+
