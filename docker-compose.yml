@@ -1,0 +1,24 @@
+services:
+  storage:
+    image: redis
+  counter:
+    environment:
+      - PORT=3002
+      - REDIS_URL=redis://storage
+    build: counter
+    restart: unless-stopped
+    ports:
+      - 3002:3002
+    depends_on:
+      - storage
+  main:
+    build: 
+      context: main
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+    working_dir: /app/main
+    ports:
+      - 80:3000
+    volumes:
+      - ./main:/app/main

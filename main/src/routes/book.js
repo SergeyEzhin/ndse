@@ -1,3 +1,4 @@
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const express = require('express');
 const router = express.Router();
 const uidGenerator = require('node-unique-id-generator');
@@ -50,15 +51,28 @@ router.post('/create', fileMiddleware.single('file-book'), (req, res) => {
     res.redirect('/books');
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const { books } = store;
     const { id } = req.params;
     const idx = books.findIndex(book => book.id === id);
+    let count;
 
     if (idx !== -1) {
+        try {
+            const response = await fetch(`http://counter:3002/counter/${id}/incr`, {
+                method: 'POST'
+            });
+            count = await response.json();
+        } catch(e) {
+            console.log(e)
+        }
+
+        console.log(count);
+        
         res.render("book/view", {
             title: 'Book view',
-            book: books[idx]
+            book: books[idx],
+            count
         })
     } else {
         res.status(404).redirect('/404');
