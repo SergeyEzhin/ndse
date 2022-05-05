@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const uidGenerator = require('node-unique-id-generator');
-const { Book } = require('../../models');
+// const { Book } = require('../../models');
 const fileMiddleware = require('../../middleware/file');
 
-const store = {
-    books: []
-};
+// const store = {
+//     books: []
+// };
 
-[1, 2, 3].map(el => {
-    const newBook = new Book(uidGenerator.generateUniqueId(), `Book ${el}`, `Desc book ${el}`);
-    store.books.push(newBook);
-});
+// [1, 2, 3].map(el => {
+//     const newBook = new Book(uidGenerator.generateUniqueId(), `Book ${el}`, `Desc book ${el}`);
+//     store.books.push(newBook);
+// });
 
 router.get('/', (req, res) => {
     const { books } = store;

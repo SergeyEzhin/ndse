@@ -1,15 +1,34 @@
-class Book {
-    constructor(id = "", title = "", description = "", 
-    authors = "", favorite = "", fileCover = "", fileName = "", fileBook = "") {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.authors = authors;
-        this.favorite = favorite;
-        this.fileCover = fileCover;
-        this.fileName = fileName;
-        this.fileBook = fileBook;
-    }
-}
+const {Schema, model} = require('mongoose');
 
-module.exports = Book;
+const bookSchema = new Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    desc: {
+        type: String,
+        required: true
+    },
+    authors: {
+        type: String,
+        required: false
+    },
+    favorite: {
+        typ: String,
+        required: false
+    },
+    fileCover: {
+        type: String,
+        required: false
+    },
+    fileName: {
+        type: String,
+        required: false
+    },
+    fileBook: {
+        type: String,
+        required: false
+    }
+});
+
+module.exports = model('Book', bookSchema);
