@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
@@ -28,10 +29,16 @@ passportConfig(passport);
 
 // Body parser
 
-app.use(bodyParser.json({ limit: '100mb' }));
-app.use(bodyParser.urlencoded({ limit: '100mb', extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
-// app.use(bodyParser.json());
+// app.use(express.json());
+app.use(cors());
+app.use((req, res, next) => {
+    req.rootDir = path.join(path.resolve(__dirname));
+    res.rootPublicDir = path.join(path.resolve(__dirname), '..');
+    next();
+});
 // app.use(bodyParser.urlencoded({
 //     extended: true
 // }));    
@@ -55,7 +62,6 @@ app.use(passport.session());
 
 app.set("view engine", "ejs");
 
-app.use(cors());
 app.use('/', indexRouter);
 app.use('/books', bookRouter);
 app.use('/api/user', userApiRouter);
