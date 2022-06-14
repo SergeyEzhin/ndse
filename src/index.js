@@ -1,16 +1,16 @@
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
 const session = require('express-session');
-const passportConfig = require('./config/passport');
 const passport = require('passport');
+const passportConfig = require('./config/passport');
 
 const errorMiddleware = require('./middleware/error');
 
 const userApiRouter = require('./routes/api/user');
 // const bookApiRouter = require('./routes/api/book');
+// "dev": "nodemon -L --watch src --watch views ./src/index.js",
 
 const indexRouter = require('./routes/index');
 const bookRouter = require('./routes/book');
@@ -22,28 +22,11 @@ const NameDB = process.env.DB_NAME || 'books';
 const HostDb = process.env.DB_HOST || 'mongodb://localhost:27017/';
 
 const app = express();
+  
+app.set("view engine", "ejs");
 
-// Passport config 
-
-passportConfig(passport);
-
-// Body parser
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-
-// app.use(express.json());
-app.use(cors());
-app.use((req, res, next) => {
-    req.rootDir = path.join(path.resolve(__dirname));
-    res.rootPublicDir = path.join(path.resolve(__dirname), '..');
-    next();
-});
-// app.use(bodyParser.urlencoded({
-//     extended: true
-// }));    
-
-// Express session
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json()); 
 
 app.use(session({
     secret: 'secret',
@@ -55,13 +38,12 @@ app.use(session({
     }
 }));
 
-// Passport middleware
+passportConfig(passport);
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.set("view engine", "ejs");
-
+// app.use(cors());
 app.use('/', indexRouter);
 app.use('/books', bookRouter);
 app.use('/api/user', userApiRouter);
@@ -69,9 +51,9 @@ app.use('/api/user', userApiRouter);
 
 app.use(errorMiddleware);
 
-function start() {
+const start = async () => {
     try {
-        mongoose.connect(HostDb, {
+        await mongoose.connect(HostDb, {
             user: UserDB,
             pass: PasswordDB,
             dbName: NameDB,
