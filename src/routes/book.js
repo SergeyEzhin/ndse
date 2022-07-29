@@ -3,9 +3,10 @@ const router = express.Router();
 const uidGenerator = require('node-unique-id-generator');
 const Book = require('../models/Book');
 const fileMiddleware = require('../middleware/file');
+const {ensureAuthenticated} = require("../config/auth");
 // const urlencodedParser = express.urlencoded({extended: false});
 
-router.get('/', async (req, res) => {
+router.get('/', ensureAuthenticated, async (req, res) => {
     const books = await Book.find();
 
     res.render("book/index", {

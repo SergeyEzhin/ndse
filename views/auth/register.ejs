@@ -1,0 +1,38 @@
+<%- include("../partials/layout-start", { title }) %>
+<%- include("../partials/menu") %>
+
+<div class="container">
+    <h1 class="mt-4"><%= title %></h1>
+
+    <div class="row">
+        <div class="col-sm-5">
+            <%- include("../partials/messages") %>
+            <form class="mt-3" action="/users/register" method="POST">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username:</label>
+                    <input type="text" name="name" value="<%= typeof name != 'undefined' ? name : '' %>" class="form-control" id="username" aria-describedby="emailHelp" />
+                </div>
+                <div class="mb-3">
+                    <label for="email-register" class="form-label">Email:</label>
+                    <input type="email" name="email" value="<%= typeof email != 'undefined' ? email : '' %>" class="form-control" id="email-register" aria-describedby="emailHelp">
+                    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="password-register" class="form-label">Password:</label>
+                    <input type="password" name="password" value="<%= typeof password != 'undefined' ? password : '' %>" class="form-control" id="password-register">
+                </div>
+                <div class="mb-4">
+                    <label for="passwordRepeat" class="form-label">Repeat password:</label>
+                    <input type="password" name="passwordRepeat" value="<%= typeof passwordRepeat != 'undefined' ? passwordRepeat : '' %>" class="form-control" id="password-repeat">
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+                <p>Have an account? <a href="/users/login">Login</a></p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include("../partials/layout-end") %>
+

@@ -1,62 +1,67 @@
 const express = require('express');
+const dotenv = require('dotenv').config();
 const cors = require('cors');
 const bodyParser = require("body-parser");
+const db = require('./config/keys').MongoURI;
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
+const flash = require('connect-flash');
 const passportConfig = require('./config/passport');
 
 const errorMiddleware = require('./middleware/error');
 
-const userApiRouter = require('./routes/api/user');
-// const bookApiRouter = require('./routes/api/book');
-// "dev": "nodemon -L --watch src --watch views ./src/index.js",
-
 const indexRouter = require('./routes/index');
 const bookRouter = require('./routes/book');
+const userRouter = require('./routes/user');
+const bookApiRouter = require('./routes/api/book');
 
 const PORT = process.env.PORT || 3000;
-const UserDB = process.env.DB_USERNAME || 'root';
-const PasswordDB = process.env.DB_PASSWORD || 'qwerty12345';
-const NameDB = process.env.DB_NAME || 'books';
-const HostDb = process.env.DB_HOST || 'mongodb://localhost:27017/';
-
 const app = express();
-  
+
+// Passport Config
+passportConfig(passport);
+
+// EJS
 app.set("view engine", "ejs");
 
+// Body parser
 app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 
+// Session
 app.use(session({
     secret: 'secret',
     resave: true,
     saveUninitialized: true,
-    cookie: {
-        secure: true,
-        httpOnly: true
-    }
+    secure: true
 }));
-
-passportConfig(passport);
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use(cors());
+// Connect flash
+app.use(flash());
+
+// Global variables
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    res.locals.error = req.flash('error');
+    next();
+});
+
+app.use(cors());
 app.use('/', indexRouter);
 app.use('/books', bookRouter);
-app.use('/api/user', userApiRouter);
+app.use('/users', userRouter);
 // app.use('/api/books', bookApiRouter);
 
 app.use(errorMiddleware);
 
 const start = async () => {
     try {
-        await mongoose.connect(HostDb, {
-            user: UserDB,
-            pass: PasswordDB,
-            dbName: NameDB,
+        await mongoose.connect(db, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
@@ -70,3 +75,5 @@ const start = async () => {
 }
 
 start();
+
+

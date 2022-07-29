@@ -3,13 +3,14 @@ module.exports = {
         if(req.isAuthenticated && req.isAuthenticated()) {
             return next();
         }
-        console.log('Please log in');
-        res.redirect('/api/user/login');
+
+        req.flash('error_msg', 'Please log in to view that resource');
+        res.redirect('/users/login');
     },
     forwardAuthenticated: function(req, res, next) {
         if (!req.isAuthenticated || !req.isAuthenticated()) {
           return next();
         }
-        res.redirect('/api/user/me');      
+        res.redirect('/users/profile');
     }
 }
