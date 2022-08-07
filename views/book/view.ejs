@@ -6,7 +6,7 @@
 
     <div class="row">
         <div class="col-sm-8">
-            <div class="card">
+            <div class="card mt-2">
                 <div class="card-body">
 
                     <h5 class="card-title"><%= book.title %></h5>
@@ -27,7 +27,34 @@
                             </button>
                         </form>
                     </div>
-
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8">
+            <h4 class="mt-3 mb-3">Comments</h4>
+            <form id="chat-form">
+                <input type="text" class="form-control field-name" id="name" value="<%= user.name %>" placeholder="Enter name" hidden />
+                <div class="mb-3">
+                    <textarea type="text" class="form-control field-comment" id="msg" placeholder="Enter comment" rows="2"></textarea>
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Comment</button>
+                </div>
+            </form>
+            <div class="chat-messages mb-3">
+                <div class="form-control mb-2">
+                    <p class="meta">Brad <span>9:12pm</span></p>
+                    <p class="text">
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium alias animi, aut autem dignissimos distinctio doloribus explicabo id, in magnam nihil nulla praesentium quam quis rem saepe vero voluptates voluptatibus! Adipisci beatae deleniti distinctio doloremque, fugit harum, ipsam laborum magni mollitia nisi obcaecati odit optio praesentium quam repellendus tenetur velit!
+                    </p>
+                </div>
+                <div class="form-control mb-2">
+                    <p class="meta">Brad <span>9:12 pm</span></p>
+                    <p class="text">
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium alias animi, aut autem dignissimos distinctio doloribus explicabo id, in magnam nihil nulla praesentium quam quis rem saepe vero voluptates voluptatibus! Adipisci beatae deleniti distinctio doloremque, fugit harum, ipsam laborum magni mollitia nisi obcaecati odit optio praesentium quam repellendus tenetur velit!
+                    </p>
                 </div>
             </div>
         </div>
@@ -35,3 +62,57 @@
 </div>
 
 <%- include("../partials/layout-end") %>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    let socket = io();
+    const chatForm = document.querySelector('#chat-form');
+    const chatMessages = document.querySelector('.chat-messages');
+
+    // Get username and room
+    const username = document.querySelector('#name').value;
+    const room = location.pathname.split('/').pop();
+    // console.log(username, room);
+
+    // Join chatroom
+    socket.emit('joinRoom', { username, room });
+
+    // Message from server
+    socket.on('message', msg => {
+        // console.log(msg);
+        outputMessage(msg);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+
+    chatForm.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const msg = e.target.elements.msg.value;
+
+        // Emit message to server
+        socket.emit('chatMessage', msg);
+
+        // Clear textarea
+        e.target.elements.msg.value = '';
+        e.target.elements.msg.focus();
+    });
+
+    function outputMessage(msg) {
+        const messageElem = document.createElement('div');
+        messageElem.classList.add('form-control');
+        messageElem.classList.add('mb-2');
+
+        const titleElem = document.createElement('p');
+        titleElem.classList.add('meta');
+        titleElem.innerText = msg.username;
+        titleElem.innerHTML += ` <span>${msg.time}</span>`;
+        messageElem.append(titleElem);
+
+        const textElem = document.createElement('p');
+        textElem.classList.add('text');
+        textElem.innerText = msg.text;
+        messageElem.append(textElem);
+
+        chatMessages.append(messageElem);
+    }
+</script>

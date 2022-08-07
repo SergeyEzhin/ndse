@@ -1,6 +1,6 @@
-<form method="POST" enctype="multipart/form-data" class="mt-3">
+<form method="POST" enctype="multipart/form-data">
     <div class="form-group">
-        <label for="inputTitle">Заголовок</label>
+        <label class="mb-2" for="inputTitle">Title:</label>
         <input type="text"
                value="<%= book.title %>"
                name="title"
@@ -9,7 +9,7 @@
     </div>
 
     <div class="form-group mt-3">
-        <label for="inputDesc">Описание</label>
+        <label class="mb-2" for="inputDesc">Description:</label>
         <textarea
                 rows="3"
                 name="desc"
@@ -26,6 +26,6 @@
     <% } %> -->
     
     <div class="form-group text-right mt-3">
-        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button type="submit" class="btn btn-primary">Save</button>
     </div>
 </form>

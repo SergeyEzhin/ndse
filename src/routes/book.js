@@ -61,7 +61,8 @@ router.get('/:id', async (req, res) => {
 
     res.render("book/view", {
         title: 'Book view',
-        book
+        book,
+        user: req.user
     });
 });
 

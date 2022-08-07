@@ -1,0 +1,17 @@
+.chat-messages {
+    height: 350px;
+    overflow-y: auto;
+}
+
+.meta {
+    font-weight: bold;
+}
+
+textarea {
+    resize: none;
+    outline: none;
+}
+
+.field-comment {
+    height: 70px;
+}

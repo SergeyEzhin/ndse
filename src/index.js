@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const socket = require('socket.io');
 const dotenv = require('dotenv').config();
 const cors = require('cors');
 const bodyParser = require("body-parser");
@@ -9,6 +11,9 @@ const passport = require('passport');
 const flash = require('connect-flash');
 const passportConfig = require('./config/passport');
 
+const formatMessage = require('../utils/messages');
+const { userJoin, getCurrentUser, userLeave } = require('../utils/users');
+
 const errorMiddleware = require('./middleware/error');
 
 const indexRouter = require('./routes/index');
@@ -18,6 +23,44 @@ const bookApiRouter = require('./routes/api/book');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+const server = http.createServer(app);
+const io = socket(server);
+
+// Set static folder
+app.use(express.static("public"));
+
+const botName = 'LibraryBot';
+
+// Run when client connects
+io.on('connection', socket => {
+    // console.log('New WS connection', socket);
+    socket.on('joinRoom', ({ username, room }) => {
+        // console.log(username, room);
+        const user = userJoin(socket.id, username, room);
+        socket.join(user.room);
+        // Welcome current user
+        socket.emit('message', formatMessage(botName, 'Welcome to book chat'));
+
+        // Broadcast when a user connects
+        socket.broadcast.to(user.room).emit('message', formatMessage(botName, `${user.username} has joined the chat`));
+    });
+
+    // Listen for chatMessage
+    socket.on('chatMessage', msg => {
+        const user = getCurrentUser(socket.id);
+
+        io.to(user.room).emit('message', formatMessage(user.username, msg));
+    });
+
+    // Runs when client disconnects
+    socket.on('disconnect', () => {
+        const user = userLeave(socket.id);
+
+        if(user) {
+            io.to(user.room).emit('message', formatMessage(botName, `${user.username} has left the chat`));
+        }
+    });
+});
 
 // Passport Config
 passportConfig(passport);
@@ -66,7 +109,7 @@ const start = async () => {
             useUnifiedTopology: true
         });
 
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`Server is running, go to http://localhost:${PORT}/`);
         })
     } catch (e) {
